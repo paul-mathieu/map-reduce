@@ -6,33 +6,34 @@ import java.util.*;
 public class MapThread extends Thread{
     Scanner file;
     HashMap<String, Integer> map = new HashMap<>();
-    Coordinator coord;
+    Shuffler shuf;
     Integer num;
     File outputFile;
 
 
-    public MapThread(String name, Coordinator coordinator) throws FileNotFoundException {
-        file = new Scanner(new File(System.getProperty("user.dir") + coordinator.dataFolder + name));
-        coord = coordinator;
+    public MapThread(String name, Shuffler shuffler) throws FileNotFoundException {
+        file = new Scanner(new File(System.getProperty("user.dir") + shuffler.dataFolder + name));
+        shuf = shuffler;
     }
 
 
     public void addToMaps(){
-        coord.maps.add(this);
-        num = coord.maps.size();
+        shuf.maps.add(this);
+        this.num = shuf.maps.size();
     }
 
     @Override
     public void run(){
         this.addToMaps();
         try {
-            this.createJSON(this.count());
+            this.count();
+            this.createJSON(this.map);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public HashMap<String, Integer> count(){
+    public void count(){
         while (file.hasNext()){
             String word = file.next().toLowerCase();
             if (word.matches("[A-zÀ-ú]+"))
@@ -43,11 +44,11 @@ public class MapThread extends Thread{
                 map.put(word, 1);
             }
         }
-        return map;
+        System.out.println(map);
     }
 
     public void createJSON (HashMap<String, Integer> map) throws IOException {
-        outputFile = new File(String.format(System.getProperty("user.dir") + "/map-output/output%02d.json", num));
+        outputFile = new File(String.format(System.getProperty("user.dir") + "/map-output/output%02d.json", this.num));
         BufferedWriter bufferedWriter = new BufferedWriter( new FileWriter(outputFile) );
         bufferedWriter.write("{");
         bufferedWriter.newLine();
